@@ -1,3 +1,5 @@
+#include <TimerOne.h>
+
 const int step_pin = 9 ;   //defining pulse or step pin   
 const int dir_pin = 12 ;  //defining pulse or direction pin( HIGH - clockwise)
 const int ena_pin = 2 ;  //defining pulse or enable pin....HIGH means driver is off and rotor is free
@@ -17,6 +19,26 @@ long steps_to_target;
 float s ;                             // take speed input (in mm/s)
 double time;
 long step_interval_micro;
+
+char c;
+long feedback_pos = 0;
+long feedback_neg = 0;
+int flag = 0;
+void Stop_Start_blink()
+{
+  if (Serial.available()>0)
+  {
+    c = Serial.read();
+    if(c=='1')
+    {
+      flag = 1;
+    }
+    if (c =='2')
+    {
+      flag = 0;
+    } 
+  } 
+}
 
 void write_int_on_serial(long num)
 {
@@ -109,9 +131,11 @@ void setup()
   write_int_on_serial(step_per_revolution);
   write_int_on_serial(steps_to_target);
   write_int_on_serial(step_interval_micro);
-
+  
   while(!Serial.available());
-  Serial.print("Starting Motors");
+  Timer1.initialize(10000);
+  Timer1.attachInterrupt(Stop_Start_blink);
+  //Serial.print("Starting Motors");
   
 }
 
@@ -131,46 +155,58 @@ void one_step_back()
 
 void loop()
 {
-  digitalWrite(ena_pin,LOW);
-  digitalWrite(dir_pin,HIGH);  
-  //Serial.println("fwd");
-  t1 = micros();
-  for(int i=0;i<steps_to_target;i++)
+  if (flag == 0)
   {
-   curr_time = micros(); 
-   if (curr_time - pre_time >= step_interval_micro || i==0)
-     { 
-      one_step_fwd();
-      pre_time = curr_time;
-     }
-  }
-  t2 = micros();
-  Actual_time_fwd = ((t2-t1)/1000000)*100; // multiply by 100 so that decimal places are preserved
-  write_int_on_serial(Actual_time_fwd);
-  //Serial.print("Actual time taken to move fwd in seconds:");
-  //Serial.println((t2-t1)/1000000);
-  digitalWrite(ena_pin,HIGH);
-  delay(2000);
-  
-  digitalWrite(dir_pin,LOW);
-  digitalWrite(ena_pin,LOW);
-  t1 = micros();
-  //Serial.println("back");
-  for(int i=0;i<steps_to_target;i++)
-  {
-    curr_time = micros(); 
-    if (curr_time - pre_time >= step_interval_micro || i==0)
-    { 
-      one_step_back();
-      pre_time = curr_time;
+    digitalWrite(ena_pin,LOW);
+    digitalWrite(dir_pin,HIGH);  
+    //Serial.println("fwd");
+    t1 = micros();
+    for(int i=0;i<steps_to_target;i++)
+    {
+     curr_time = micros();   
+     if (curr_time - pre_time >= step_interval_micro || i==0)
+       { 
+        one_step_fwd();
+        pre_time = curr_time;
+        feedback_pos = feedback_pos + 1;
+       }
     }
+    t2 = micros();
+    Actual_time_fwd = ((t2-t1)/1000000)*100; // multiply by 100 so that decimal places are preserved    
+    write_int_on_serial(Actual_time_fwd);
+    
+    //Serial.print("Actual time taken to move fwd in seconds:");
+    //Serial.println((t2-t1)/1000000);  
+
+    delay(2000);
+    feedback_neg = 0;
+  
+    digitalWrite(dir_pin,LOW);
+    digitalWrite(ena_pin,LOW);
+    t1 = micros();
+    //Serial.println("back");
+    for(int i=0;i<steps_to_target;i++)
+    {
+      curr_time = micros(); 
+      if (curr_time - pre_time >= step_interval_micro || i==0)
+      { 
+        one_step_back();
+        pre_time = curr_time;
+        feedback_neg = feedback_neg - 1;
+      }
+    }
+    t2 = micros();
+    Actual_time_back = ((t2-t1)/1000000)*100; // multiply by 100 so that decimal places are preserved
+    write_int_on_serial(Actual_time_back);
+  
+    //Serial.print("Actual time taken to move back in seconds:");
+    //Serial.println((t2-t1)/1000000);
+  
+    delay(2000);
+    feedback_pos = 0;
   }
-  t2 = micros();
-  Actual_time_back = ((t2-t1)/1000000)*100; // multiply by 100 so that decimal places are preserved
-  write_int_on_serial(Actual_time_back);
-  //Serial.print("Actual time taken to move back in seconds:");
-  //Serial.println((t2-t1)/1000000);
-  
-  delay(2000);
-  
+  else
+  {
+    digitalWrite(ena_pin,HIGH);
+  }
 }
