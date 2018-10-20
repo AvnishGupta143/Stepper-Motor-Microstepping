@@ -1,3 +1,4 @@
+# python 2
 import serial
 import time
 import os
@@ -39,7 +40,8 @@ class serial_communication(object):
 		self.speed = str(input())
 
 		# This is what speed.encode() does
-		byte_speed = bytes(self.speed,"utf-8")
+		byte_speed = self.speed.encode()
+		# bytes(self.speed,"utf-8") -  can use this when working with python 3
 		
 		self.ser.write(byte_speed)
 		time.sleep(0.3)
@@ -89,7 +91,7 @@ class serial_communication(object):
 		print( "Theoritical Time Taken: " + str(self.theoritical_time_taken) + " Seconds")
 
 		print(" Press Enter to Start the motor: ")
-		input()
+		raw_input()
 		self.ser.write("1".encode())
 		print("------------------Motor Started-----------")	
 
