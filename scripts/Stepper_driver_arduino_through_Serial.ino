@@ -12,7 +12,7 @@ long Actual_time_fwd;
 long Actual_time_back;
 long step_per_revolution ; 
 float dist_in_single_step ;          //hardcoded value  ( in  mm) - This is the input which should be specified by the user
-float distance_target = 50;          //hardcoded value  ( in  mm ) - This the target distance to move
+float distance_target = 30;          //hardcoded value  ( in  mm ) - This the target distance to move
 long steps_to_target;
 float s ;                             // take speed input (in mm/s)
 double time;
@@ -84,7 +84,7 @@ void setup()
       break;
     case 7:
       step_per_revolution = 12800;
-      dist_in_single_step = 0.02;
+      dist_in_single_step = 0.001;
       break;
     case 8:
       step_per_revolution = 16000;
@@ -111,6 +111,7 @@ void setup()
   write_int_on_serial(step_interval_micro);
   
   while(!Serial.available());
+  digitalWrite(ena_pin,LOW);
   //Serial.print("Starting Motors");
   
 }
@@ -131,8 +132,6 @@ void one_step_back()
 
 void loop()
 {
-  
-  digitalWrite(ena_pin,LOW);
   digitalWrite(dir_pin,HIGH);  
   //Serial.println("fwd");
   t1 = micros();
@@ -151,17 +150,17 @@ void loop()
   
   //Serial.print("Actual time taken to move fwd in seconds:");
   //Serial.println((t2-t1)/1000000);
-  digitalWrite(ena_pin,HIGH);
+  //digitalWrite(ena_pin,HIGH);
   delay(2000);
   
   digitalWrite(dir_pin,LOW);
-  digitalWrite(ena_pin,LOW);
+  //digitalWrite(ena_pin,LOW);
   t1 = micros();
   //Serial.println("back");
-  for(int i=0;i<steps_to_target;i++)
+  for(int j=0;j<steps_to_target;j++)
   {
     curr_time = micros(); 
-    if (curr_time - pre_time >= step_interval_micro || i==0)
+    if (curr_time - pre_time >= step_interval_micro || j==0)
     { 
       one_step_back();
       pre_time = curr_time;
