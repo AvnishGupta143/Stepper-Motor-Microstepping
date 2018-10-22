@@ -2,6 +2,7 @@
 import serial
 import time
 import os
+import serial.tools.list_ports as port
 
 class serial_communication(object):
 
@@ -9,7 +10,14 @@ class serial_communication(object):
 		super(serial_communication, self).__init__()
 		
 		self.ser = serial.Serial()
-		self.ser.port = "/dev/ttyACM2"
+		
+		#Finding the port at which we can connect
+		portlist = list(port.comports())
+		for p in portlist:
+			if "/dev/ttyACM" in str(p):
+				self.arduino_comport = str(p).split(" ")				
+		self.ser.port = self.arduino_comport[0]
+
 		self.ser.baudrate = 9600
 		self.ser.bytesize = serial.EIGHTBITS
 		self.ser.parity = serial.PARITY_NONE
@@ -32,7 +40,7 @@ class serial_communication(object):
 			if(self.ser.isOpen()): 
 				print("Communication started successfully at " + self.ser.portstr + "\n")
 		except:
-			print("Failed to connect at specified Port !!!!")
+			print("Failed to connect at any Port !!!!....Please check the connection")
 			exit()
 
 	def set_speed(self):
@@ -40,8 +48,7 @@ class serial_communication(object):
 		self.speed = str(input())
 
 		# This is what speed.encode() does
-		byte_speed = self.speed.encode()
-		# bytes(self.speed,"utf-8") -  can use this when working with python 3
+		byte_speed = self.speed.encode() # bytes(self.speed,"utf-8")
 		
 		self.ser.write(byte_speed)
 		time.sleep(0.3)
