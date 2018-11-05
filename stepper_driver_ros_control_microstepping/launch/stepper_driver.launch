@@ -1,0 +1,15 @@
+<launch>
+   
+  <!--arg name="speed" doc="Enter the speed in mm/s" /-->
+  <!--arg name="stepmode" doc="Enter the specified stepping mode needed" /-->
+
+  <node type="Ros_comm_Binpicking.py" pkg="stepper_ros_control" name="stepper_driver" output="screen">
+    <!--param name="speed" value="$(arg speed)" /-->
+    <!--param name="stepmode" value="$(arg stepmode)" /-->
+  </node>
+
+<!--Loading script to move the linear actuator in gazebo-->
+  <node type="linear_movement.py" pkg ="frames" name="linear_movement_gz">
+  </node>
+  	
+</launch>
