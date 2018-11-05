@@ -12,7 +12,7 @@ long Actual_time_fwd;
 long Actual_time_back;
 long step_per_revolution ; 
 float dist_in_single_step ;          //hardcoded value  ( in  mm) - This is the input which should be specified by the user
-float distance_target = 30;          //hardcoded value  ( in  mm ) - This the target distance to move
+float distance_target = 450;          //hardcoded value  ( in  mm ) - This the target distance to move
 long steps_to_target;
 float s ;                             // take speed input (in mm/s)
 double time;
@@ -21,7 +21,7 @@ long step_interval_micro;
 long feedback_pos = 0;
 long feedback_neg = 0;
 
-volatile int flag = 0;
+volatile int flag = 1;
 
 void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
@@ -87,7 +87,7 @@ void setup()
       break;
     case 1:
       step_per_revolution = 400;
-      dist_in_single_step = 0.02;
+      dist_in_single_step = 0.175;
       break;
     case 2:
       step_per_revolution = 800;
@@ -99,7 +99,7 @@ void setup()
       break;
     case 4:
       step_per_revolution = 3200;
-      dist_in_single_step = 0.02;
+      dist_in_single_step = 0.01;
       break;
     case 5:
       step_per_revolution = 6400;
@@ -107,7 +107,7 @@ void setup()
       break;
     case 6:
       step_per_revolution = 10000;
-      dist_in_single_step = 0.02;
+      dist_in_single_step = 0.002;
       break;
     case 7:
       step_per_revolution = 12800;
@@ -127,7 +127,7 @@ void setup()
       break;  
   }
   
-  flag = 0;
+  flag = 1;
   steps_to_target = distance_target / dist_in_single_step ;
   time = (distance_target / s) ;                              
   step_interval_micro = (time * 1000000 / steps_to_target) - 21 - 6;//21 is substracted as a correction factor and 6 for the Motor_Start_Stop() runtime
@@ -203,15 +203,16 @@ void loop()
   
     delay(2000);    
     feedback_pos = 0;
+    flag = 1 ;
   }
-  else if (flag == 2)
+  else if (flag == 2)   
   {
     digitalWrite(ena_pin,HIGH);
     resetFunc();
   }
-  else 
+  else if(flag == 1)
   {
-    digitalWrite(ena_pin,HIGH);
+    digitalWrite(ena_pin,HIGH);  
     Stop_Start_Motor();
   }
 }
